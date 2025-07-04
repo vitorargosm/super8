@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super 8 da Amizade</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title-large">🏸 Super 8 da Amizade</h1>
+            <p class="body">Tabela Interativa de Resultados</p>
+        </header>
+
+        <main class="main-content">
+            <section class="matches-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="headline card-title">Partidas</h2>
+                    </div>
+                    <div class="card-content">
+                        <div id="matchesContainer"></div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="classification-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="headline card-title">Ranking por Vitórias</h2>
+                    </div>
+                    <div class="card-content">
+                        <table class="classification-table">
+                            <thead>
+                                <tr>
+                                    <th>Pos</th>
+                                    <th>Jogador</th>
+                                    <th>V</th>
+                                    <th>D</th>
+                                    <th>%</th>
+                                </tr>
+                            </thead>
+                            <tbody id="winsClassificationBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="headline card-title">Ranking por Jogos</h2>
+                    </div>
+                    <div class="card-content">
+                        <table class="classification-table">
+                            <thead>
+                                <tr>
+                                    <th>Pos</th>
+                                    <th>Jogador</th>
+                                    <th>Dif</th>
+                                    <th>JP</th>
+                                    <th>JC</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gamesClassificationBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <footer class="controls">
+            <div class="controls-grid">
+                <button class="btn btn-primary" onclick="showPlayerEditor()">
+                    👥 Editar Jogadores
+                </button>
+                <button class="btn btn-secondary" onclick="showTournamentValidation()">
+                    🔍 Validar Torneio
+                </button>
+                <button class="btn btn-secondary" onclick="generatePartnershipReport()">
+                    📊 Relatório
+                </button>
+                <button class="btn btn-danger" onclick="resetTournament()">
+                    🔄 Resetar
+                </button>
+                <button class="btn btn-secondary" onclick="testFunction()">
+                    🧪 Testar
+                </button>
+            </div>
+            <p class="footnote">Dados salvos automaticamente</p>
+        </footer>
+
+        <!-- Player Editor Modal -->
+        <div id="playerModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Editar Nomes dos Jogadores</h3>
+                    <button class="modal-close" onclick="hidePlayerEditor()">×</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-description">Altere os nomes dos jogadores. Todos os nomes devem ser únicos.</p>
+                    <div id="playerEditContainer"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="hidePlayerEditor()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="savePlayerNames()">💾 Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
