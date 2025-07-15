@@ -1,113 +1,192 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super 8 da Amizade</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Super 8 Padel Tournament</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1 class="title-large">🏸 Super 8 da Amizade</h1>
-            <p class="body">Tabela Interativa de Resultados</p>
-        </header>
-
-        <main class="main-content">
-            <section class="matches-section">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="headline card-title">Partidas</h2>
-                    </div>
-                    <div class="card-content">
-                        <div id="matchesContainer"></div>
-                    </div>
-                </div>
-            </section>
-
-            <aside class="classification-section">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="headline card-title">Ranking por Vitórias</h2>
-                    </div>
-                    <div class="card-content">
-                        <table class="classification-table">
-                            <thead>
-                                <tr>
-                                    <th>Pos</th>
-                                    <th>Jogador</th>
-                                    <th>V</th>
-                                    <th>D</th>
-                                    <th>%</th>
-                                </tr>
-                            </thead>
-                            <tbody id="winsClassificationBody">
-                            </tbody>
-                        </table>
-                    </div>
+    <!-- Tournament Setup Screen -->
+    <div id="setup-screen" class="screen active">
+        <div class="container">
+            <h1>Super 8 Padel Tournament</h1>
+            <div class="setup-form">
+                <div class="form-group">
+                    <label for="tournament-name">Tournament Name</label>
+                    <input type="text" id="tournament-name" placeholder="Enter tournament name">
                 </div>
                 
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="headline card-title">Ranking por Jogos</h2>
-                    </div>
-                    <div class="card-content">
-                        <table class="classification-table">
-                            <thead>
-                                <tr>
-                                    <th>Pos</th>
-                                    <th>Jogador</th>
-                                    <th>Dif</th>
-                                    <th>JP</th>
-                                    <th>JC</th>
-                                </tr>
-                            </thead>
-                            <tbody id="gamesClassificationBody">
-                            </tbody>
-                        </table>
+                <div class="form-group">
+                    <label>Tournament Type</label>
+                    <div class="toggle-buttons">
+                        <button type="button" class="toggle-btn active" data-type="singles">Singles (8 Players)</button>
+                        <button type="button" class="toggle-btn" data-type="duos">Duos (4 Teams)</button>
                     </div>
                 </div>
-            </aside>
-        </main>
 
-        <footer class="controls">
-            <div class="controls-grid">
-                <button class="btn btn-primary" onclick="showPlayerEditor()">
-                    👥 Editar Jogadores
-                </button>
-                <button class="btn btn-secondary" onclick="showTournamentValidation()">
-                    🔍 Validar Torneio
-                </button>
-                <button class="btn btn-secondary" onclick="generatePartnershipReport()">
-                    📊 Relatório
-                </button>
-                <button class="btn btn-danger" onclick="resetTournament()">
-                    🔄 Resetar
-                </button>
-                <button class="btn btn-secondary" onclick="testFunction()">
-                    🧪 Testar
-                </button>
-            </div>
-            <p class="footnote">Dados salvos automaticamente</p>
-        </footer>
+                <div id="players-input" class="form-group">
+                    <label>Player Names</label>
+                    <div class="players-grid">
+                        <input type="text" class="player-input" placeholder="Player 1" data-index="0">
+                        <input type="text" class="player-input" placeholder="Player 2" data-index="1">
+                        <input type="text" class="player-input" placeholder="Player 3" data-index="2">
+                        <input type="text" class="player-input" placeholder="Player 4" data-index="3">
+                        <input type="text" class="player-input" placeholder="Player 5" data-index="4">
+                        <input type="text" class="player-input" placeholder="Player 6" data-index="5">
+                        <input type="text" class="player-input" placeholder="Player 7" data-index="6">
+                        <input type="text" class="player-input" placeholder="Player 8" data-index="7">
+                    </div>
+                </div>
 
-        <!-- Player Editor Modal -->
-        <div id="playerModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Editar Nomes dos Jogadores</h3>
-                    <button class="modal-close" onclick="hidePlayerEditor()">×</button>
+                <div id="duos-input" class="form-group hidden">
+                    <label>Duo Players</label>
+                    <div class="duos-grid">
+                        <div class="duo-input">
+                            <label class="duo-label">Duo 1</label>
+                            <div class="duo-players">
+                                <input type="text" class="duo-player" placeholder="Player 1" data-duo="0" data-player="0">
+                                <input type="text" class="duo-player" placeholder="Player 2" data-duo="0" data-player="1">
+                            </div>
+                        </div>
+                        <div class="duo-input">
+                            <label class="duo-label">Duo 2</label>
+                            <div class="duo-players">
+                                <input type="text" class="duo-player" placeholder="Player 1" data-duo="1" data-player="0">
+                                <input type="text" class="duo-player" placeholder="Player 2" data-duo="1" data-player="1">
+                            </div>
+                        </div>
+                        <div class="duo-input">
+                            <label class="duo-label">Duo 3</label>
+                            <div class="duo-players">
+                                <input type="text" class="duo-player" placeholder="Player 1" data-duo="2" data-player="0">
+                                <input type="text" class="duo-player" placeholder="Player 2" data-duo="2" data-player="1">
+                            </div>
+                        </div>
+                        <div class="duo-input">
+                            <label class="duo-label">Duo 4</label>
+                            <div class="duo-players">
+                                <input type="text" class="duo-player" placeholder="Player 1" data-duo="3" data-player="0">
+                                <input type="text" class="duo-player" placeholder="Player 2" data-duo="3" data-player="1">
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <p class="modal-description">Altere os nomes dos jogadores. Todos os nomes devem ser únicos.</p>
-                    <div id="playerEditContainer"></div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" onclick="hidePlayerEditor()">Cancelar</button>
-                    <button class="btn btn-primary" onclick="savePlayerNames()">💾 Salvar Alterações</button>
-                </div>
+
+                <button id="start-tournament" class="primary-button">Start Tournament</button>
             </div>
         </div>
+    </div>
+
+    <!-- Main App Screen -->
+    <div id="main-screen" class="screen">
+        <!-- Success Notification -->
+        <div id="success-notification" class="success-notification">
+            <span id="success-message"></span>
+        </div>
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-navigation">
+                <button id="prev-round" class="nav-arrow">‹</button>
+                <h1 id="round-title">Round 1</h1>
+                <button id="next-round" class="nav-arrow">›</button>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <main class="app-content">
+            <!-- Rounds Tab -->
+            <div id="rounds-tab" class="tab-content active">
+                <div id="rounds-container" class="rounds-container">
+                    <!-- Round content will be dynamically generated -->
+                </div>
+            </div>
+
+            <!-- Rankings Tab -->
+            <div id="rankings-tab" class="tab-content">
+                <div class="rankings-header">
+                    <h2 id="ranking-title">Rankings by Victories</h2>
+                    <div class="toggle-buttons small">
+                        <button type="button" class="toggle-btn active" data-ranking="victories">Victories</button>
+                        <button type="button" class="toggle-btn" data-ranking="games">Games Won</button>
+                    </div>
+                </div>
+                <div class="ranking-table">
+                    <table id="rankings-table">
+                        <thead>
+                            <tr>
+                                <th>Pos</th>
+                                <th>Player/Duo</th>
+                                <th id="ranking-metric">Victories</th>
+                                <th>Played</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <button id="share-ranking" class="secondary-button">Share on WhatsApp</button>
+            </div>
+
+            <!-- Players Tab -->
+            <div id="players-tab" class="tab-content">
+                <h2>Players</h2>
+                <div id="players-list" class="players-list">
+                    <!-- Player list will be dynamically generated -->
+                </div>
+                <div class="players-actions">
+                    <button id="save-players" class="success-button">Save Player Names</button>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-content">
+                <h2>Settings</h2>
+                <div class="settings-list">
+                    <button id="check-matches" class="secondary-button">Check for Repeated Pairs</button>
+                    <button id="scramble-players" class="secondary-button">Scramble Players & Reset</button>
+                    <button id="reset-tournament" class="danger-button">Reset Tournament</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-tab="rounds">
+                <span class="nav-icon">🎾</span>
+                <span class="nav-label">Rounds</span>
+            </button>
+            <button class="nav-item" data-tab="rankings">
+                <span class="nav-icon">🏆</span>
+                <span class="nav-label">Rankings</span>
+            </button>
+            <button class="nav-item" data-tab="players">
+                <span class="nav-icon">👥</span>
+                <span class="nav-label">Players</span>
+            </button>
+            <button class="nav-item" data-tab="settings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Settings</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Confirm Action</h3>
+            <p id="modal-message">Are you sure you want to proceed?</p>
+            <div class="modal-actions">
+                <button id="modal-cancel" class="secondary-button">Cancel</button>
+                <button id="modal-confirm" class="danger-button">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <span id="toast-message"></span>
     </div>
 
     <script src="script.js"></script>
