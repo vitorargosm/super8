@@ -41,19 +41,17 @@ class Super8Tournament {
         });
 
         // Players actions
-        document.getElementById('scramble-players').addEventListener('click', () => this.scramblePlayers());
+        document.getElementById('save-players').addEventListener('click', () => this.savePlayerNames());
         document.getElementById('share-ranking').addEventListener('click', () => this.shareRanking());
 
         // Settings actions
         document.getElementById('check-matches').addEventListener('click', () => this.checkMatches());
+        document.getElementById('scramble-players').addEventListener('click', () => this.confirmScramble());
         document.getElementById('reset-tournament').addEventListener('click', () => this.confirmReset());
 
         // Modal events
         document.getElementById('modal-cancel').addEventListener('click', () => this.hideModal());
         document.getElementById('modal-confirm').addEventListener('click', () => this.confirmAction());
-
-        // Touch events for swipe navigation
-        this.setupSwipeNavigation();
     }
 
     handleToggle(e) {
@@ -139,14 +137,13 @@ class Super8Tournament {
         const duoInputs = document.querySelectorAll('.duo-input');
 
         duoInputs.forEach((duoDiv, index) => {
-            const duoName = duoDiv.querySelector('.duo-name').value.trim();
             const player1 = duoDiv.querySelector('[data-player="0"]').value.trim();
             const player2 = duoDiv.querySelector('[data-player="1"]').value.trim();
 
-            if (duoName && player1 && player2) {
+            if (player1 && player2) {
                 duos.push({
                     id: index,
-                    name: duoName,
+                    name: `${player1} & ${player2}`,
                     players: [player1, player2]
                 });
             }
@@ -170,56 +167,6 @@ class Super8Tournament {
     }
 
     generateSinglesMatches() {
-        const players = this.tournamentData.players;
-        const matches = [];
-        
-        // Generate 7 rounds for 8 players (each player partners with every other player once)
-        for (let round = 0; round < 7; round++) {
-            const roundMatches = [];
-            
-            // For round robin with 8 players, we fix player 0 and rotate others
-            for (let match = 0; match < 4; match++) {
-                let team1, team2;
-                
-                if (match === 0) {
-                    // First match of the round always includes player 0
-                    const partner = (round + 1) % 8;
-                    const opp1 = (round + 2 + match) % 8;
-                    const opp2 = (8 - 1 - match - round % 2) % 8;
-                    
-                    team1 = [players[0], players[partner]];
-                    team2 = [players[opp1], players[opp2]];
-                } else {
-                    // Calculate remaining players for other matches
-                    const usedPlayers = new Set([0, (round + 1) % 8]);
-                    const remainingPlayers = players.filter(p => !usedPlayers.has(p.id));
-                    
-                    // Create pairs from remaining players
-                    const pairIndex = (match - 1) * 2;
-                    if (pairIndex + 3 < remainingPlayers.length) {
-                        team1 = [remainingPlayers[pairIndex], remainingPlayers[pairIndex + 1]];
-                        team2 = [remainingPlayers[pairIndex + 2], remainingPlayers[pairIndex + 3]];
-                    }
-                }
-                
-                if (team1 && team2) {
-                    roundMatches.push({
-                        id: `${round}-${match}`,
-                        round: round,
-                        team1: team1,
-                        team2: team2,
-                        score1: 0,
-                        score2: 0,
-                        completed: false
-                    });
-                }
-            }
-            
-            // Use a more systematic approach for 8-player round robin
-            const roundPairs = this.generateRoundRobinPairs(round, players);
-            matches.push(roundPairs);
-        }
-        
         this.tournamentData.matches = this.generateSinglesMatchesSystematic();
     }
 
@@ -266,7 +213,7 @@ class Super8Tournament {
             for (let j = i + 1; j < duos.length; j++) {
                 matches.push({
                     id: `${matches.length}`,
-                    round: 0, // All matches in one round for duos
+                    round: 0,
                     team1: duos[i],
                     team2: duos[j],
                     score1: 0,
@@ -276,13 +223,15 @@ class Super8Tournament {
             }
         }
         
-        this.tournamentData.matches = [matches]; // Wrap in array for consistency
+        this.tournamentData.matches = [matches];
     }
 
     showMainScreen() {
         document.getElementById('setup-screen').classList.remove('active');
         document.getElementById('main-screen').classList.add('active');
-        document.getElementById('app-title').textContent = this.tournamentData.name;
+        
+        // Show header initially (starts on rounds tab)
+        document.querySelector('.app-header').classList.remove('hidden');
         
         this.renderRounds();
         this.renderPlayers();
@@ -313,27 +262,36 @@ class Super8Tournament {
         matchDiv.className = 'match';
         matchDiv.dataset.matchId = match.id;
 
-        const team1Name = this.tournamentData.type === 'singles' 
-            ? `${match.team1[0].name} & ${match.team1[1].name}`
-            : match.team1.name;
+        // Calculate court number (1 or 2 for each round)
+        const courtNumber = (parseInt(match.id.split('-')[1]) || 0) + 1;
+
+        let team1Players, team2Players;
         
-        const team2Name = this.tournamentData.type === 'singles'
-            ? `${match.team2[0].name} & ${match.team2[1].name}`
-            : match.team2.name;
+        if (this.tournamentData.type === 'singles') {
+            team1Players = `<div class="player-name">${match.team1[0].name}</div><div class="player-name">${match.team1[1].name}</div>`;
+            team2Players = `<div class="player-name">${match.team2[0].name}</div><div class="player-name">${match.team2[1].name}</div>`;
+        } else {
+            team1Players = `<div class="player-name">${match.team1.players[0]}</div><div class="player-name">${match.team1.players[1]}</div>`;
+            team2Players = `<div class="player-name">${match.team2.players[0]}</div><div class="player-name">${match.team2.players[1]}</div>`;
+        }
 
         matchDiv.innerHTML = `
+            <div class="court-number">Court ${courtNumber}</div>
             <div class="match-teams">
-                <span class="team">${team1Name}</span>
-                <span class="vs">vs</span>
-                <span class="team">${team2Name}</span>
-            </div>
-            <div class="match-score">
-                <input type="number" class="score-input" min="0" max="50" value="${match.score1}" data-team="1">
-                <span class="vs">-</span>
-                <input type="number" class="score-input" min="0" max="50" value="${match.score2}" data-team="2">
+                <div class="team-column">
+                    <div class="team-header">Team 1</div>
+                    ${team1Players}
+                    <input type="number" class="score-input" min="0" max="50" value="${match.score1}" data-team="1">
+                </div>
+                <div class="vs-separator">×</div>
+                <div class="team-column">
+                    <div class="team-header">Team 2</div>
+                    ${team2Players}
+                    <input type="number" class="score-input" min="0" max="50" value="${match.score2}" data-team="2">
+                </div>
             </div>
             <div class="match-actions">
-                <button class="secondary-button save-match">Save</button>
+                <button class="success-button save-match">Save</button>
                 <button class="secondary-button edit-match" ${!match.completed ? 'style="display:none"' : ''}>Edit</button>
             </div>
         `;
@@ -352,6 +310,16 @@ class Super8Tournament {
         
         inputs.forEach(input => {
             input.addEventListener('change', () => this.markMatchAsEdited(matchDiv));
+            
+            // Select all text when clicking on input so typing replaces the value
+            input.addEventListener('focus', () => {
+                input.select();
+            });
+            
+            // Also select all on click in case focus doesn't work on mobile
+            input.addEventListener('click', () => {
+                input.select();
+            });
         });
     }
 
@@ -374,7 +342,7 @@ class Super8Tournament {
         this.updateMatchDisplay(matchDiv, true);
         this.updateRankings();
         this.updateNavigation();
-        this.showToast('Match saved successfully');
+        this.showSuccessNotification('Match saved successfully');
     }
 
     editMatch(matchDiv) {
@@ -430,7 +398,13 @@ class Super8Tournament {
         const isCompleted = this.isRoundCompleted(this.tournamentData.currentRound);
         
         roundTitle.textContent = `Round ${currentRound}`;
-        roundTitle.className = isCompleted ? 'round-completed' : '';
+        
+        // Apply green background if round is completed
+        if (isCompleted) {
+            roundTitle.classList.add('round-completed');
+        } else {
+            roundTitle.classList.remove('round-completed');
+        }
     }
 
     updateNavigation() {
@@ -460,6 +434,14 @@ class Super8Tournament {
         // Update content
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         document.getElementById(`${tabName}-tab`).classList.add('active');
+
+        // Show/hide entire header based on tab
+        const header = document.querySelector('.app-header');
+        if (tabName === 'rounds') {
+            header.classList.remove('hidden');
+        } else {
+            header.classList.add('hidden');
+        }
 
         // Update content based on tab
         if (tabName === 'rankings') {
@@ -574,35 +556,75 @@ class Super8Tournament {
         participants.forEach((participant, index) => {
             const div = document.createElement('div');
             div.className = 'player-item';
-            div.innerHTML = `
-                <div class="player-info">
-                    <div class="player-name">${participant.name}</div>
-                    <div class="player-stats">Position: ${index + 1}</div>
-                </div>
-                <button class="secondary-button player-edit" onclick="tournament.editPlayer(${participant.id})">
-                    Edit
-                </button>
-            `;
+            
+            if (this.tournamentData.type === 'singles') {
+                div.innerHTML = `
+                    <div class="player-info">
+                        <div class="player-label">Player ${index + 1}</div>
+                        <input type="text" class="player-name-input" value="${participant.name}" data-id="${participant.id}" data-type="single">
+                    </div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div class="player-info">
+                        <div class="player-label">Duo ${index + 1}</div>
+                        <input type="text" class="player-name-input" value="${participant.players[0]}" data-id="${participant.id}" data-type="duo" data-player="0" placeholder="Player 1">
+                        <input type="text" class="player-name-input" value="${participant.players[1]}" data-id="${participant.id}" data-type="duo" data-player="1" placeholder="Player 2">
+                    </div>
+                `;
+            }
+            
             container.appendChild(div);
         });
     }
 
-    editPlayer(playerId) {
-        const participant = this.tournamentData.type === 'singles'
-            ? this.tournamentData.players.find(p => p.id === playerId)
-            : this.tournamentData.duos.find(d => d.id === playerId);
+    savePlayerNames() {
+        const inputs = document.querySelectorAll('.player-name-input');
+        let hasChanges = false;
 
-        if (participant) {
-            const newName = prompt('Enter new name:', participant.name);
-            if (newName && newName.trim()) {
-                participant.name = newName.trim();
-                this.renderPlayers();
-                this.renderRounds();
-                this.updateRankings();
-                this.saveTournamentData();
-                this.showToast('Player name updated');
+        inputs.forEach(input => {
+            const newName = input.value.trim();
+            if (!newName) {
+                this.showToast('All player names must be filled');
+                return;
             }
+
+            const id = parseInt(input.dataset.id);
+            const type = input.dataset.type;
+
+            if (type === 'single') {
+                const player = this.tournamentData.players.find(p => p.id === id);
+                if (player && player.name !== newName) {
+                    player.name = newName;
+                    hasChanges = true;
+                }
+            } else {
+                const playerIndex = parseInt(input.dataset.player);
+                const duo = this.tournamentData.duos.find(d => d.id === id);
+                if (duo && duo.players[playerIndex] !== newName) {
+                    duo.players[playerIndex] = newName;
+                    duo.name = `${duo.players[0]} & ${duo.players[1]}`;
+                    hasChanges = true;
+                }
+            }
+        });
+
+        if (hasChanges) {
+            this.renderRounds();
+            this.updateRankings();
+            this.saveTournamentData();
+            this.showSuccessNotification('Player names updated successfully');
+        } else {
+            this.showToast('No changes to save');
         }
+    }
+
+    confirmScramble() {
+        this.showModal(
+            'Scramble Players',
+            'Are you sure you want to scramble the players? This will reset all match scores and regenerate all matches.',
+            () => this.scramblePlayers()
+        );
     }
 
     scramblePlayers() {
@@ -616,20 +638,22 @@ class Super8Tournament {
             [participants[i], participants[j]] = [participants[j], participants[i]];
         }
 
-        // Regenerate matches with new order
+        // Regenerate matches with new order and reset scores
         this.generateMatches();
+        this.tournamentData.currentRound = 0;
         this.renderRounds();
         this.renderPlayers();
         this.updateRankings();
+        this.updateNavigation();
         this.saveTournamentData();
-        this.showToast('Players scrambled and matches regenerated');
+        this.showSuccessNotification('Players scrambled and matches regenerated');
     }
 
     checkMatches() {
         const violations = this.findRepeatedPairs();
         
         if (violations.length === 0) {
-            this.showToast('✅ No repeated pairs found! All matches are valid.');
+            this.showSuccessNotification('✅ No repeated pairs found! All matches are valid.');
         } else {
             const message = `⚠️ Found ${violations.length} repeated pair(s):\n${violations.join('\n')}`;
             alert(message);
@@ -730,40 +754,6 @@ class Super8Tournament {
         this.showToast('Tournament reset successfully');
     }
 
-    setupSwipeNavigation() {
-        const container = document.getElementById('rounds-container');
-        let startX = 0;
-        let isDragging = false;
-
-        container.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            isDragging = true;
-        });
-
-        container.addEventListener('touchend', (e) => {
-            if (!isDragging) return;
-            
-            const endX = e.changedTouches[0].clientX;
-            const diffX = startX - endX;
-            
-            if (Math.abs(diffX) > 50) { // Minimum swipe distance
-                if (diffX > 0) {
-                    // Swipe left - next round
-                    this.changeRound(1);
-                } else {
-                    // Swipe right - previous round
-                    this.changeRound(-1);
-                }
-            }
-            
-            isDragging = false;
-        });
-
-        container.addEventListener('touchcancel', () => {
-            isDragging = false;
-        });
-    }
-
     showModal(title, message, confirmCallback) {
         document.getElementById('modal-title').textContent = title;
         document.getElementById('modal-message').textContent = message;
@@ -784,32 +774,92 @@ class Super8Tournament {
         this.hideModal();
     }
 
-    showToast(message) {
-        const toast = document.getElementById('toast');
-        document.getElementById('toast-message').textContent = message;
-        toast.classList.add('show');
+    showSuccessNotification(message) {
+        const notification = document.getElementById('success-notification');
+        document.getElementById('success-message').textContent = message;
+        notification.classList.add('show');
         
         setTimeout(() => {
-            toast.classList.remove('show');
+            notification.classList.remove('show');
         }, 3000);
     }
 
+    showToast(message) {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        
+        // Clear any existing timeout
+        if (this.toastTimeout) {
+            clearTimeout(this.toastTimeout);
+        }
+        
+        // Completely reset the toast
+        toast.classList.remove('show');
+        toastMessage.textContent = '';
+        
+        // Set message and show after a brief delay
+        setTimeout(() => {
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            // Set timeout to hide and clear
+            this.toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+                // Clear the message completely after animation
+                setTimeout(() => {
+                    toastMessage.textContent = '';
+                }, 300); // Wait for CSS transition to complete
+                this.toastTimeout = null;
+            }, 3000);
+        }, 50);
+    }
+
     saveTournamentData() {
-        localStorage.setItem('super8Tournament', JSON.stringify(this.tournamentData));
+        try {
+            // Check if localStorage is available
+            if (typeof(Storage) !== "undefined" && window.localStorage) {
+                localStorage.setItem('super8Tournament', JSON.stringify(this.tournamentData));
+            } else {
+                // Fallback to memory storage
+                window.tournamentBackup = JSON.stringify(this.tournamentData);
+            }
+        } catch (e) {
+            console.error('Error saving tournament data:', e);
+            // Fallback to memory storage
+            try {
+                window.tournamentBackup = JSON.stringify(this.tournamentData);
+            } catch (e2) {
+                console.error('Error saving backup data:', e2);
+            }
+        }
     }
 
     loadTournamentData() {
-        const saved = localStorage.getItem('super8Tournament');
-        if (saved) {
-            try {
-                const data = JSON.parse(saved);
+        try {
+            // Check if localStorage is available
+            if (typeof(Storage) !== "undefined" && window.localStorage) {
+                const saved = localStorage.getItem('super8Tournament');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (data.name && (data.players?.length > 0 || data.duos?.length > 0)) {
+                        this.tournamentData = data;
+                        this.showMainScreen();
+                        return;
+                    }
+                }
+            }
+            
+            // Try fallback storage
+            if (window.tournamentBackup) {
+                const data = JSON.parse(window.tournamentBackup);
                 if (data.name && (data.players?.length > 0 || data.duos?.length > 0)) {
                     this.tournamentData = data;
                     this.showMainScreen();
                 }
-            } catch (e) {
-                console.error('Error loading tournament data:', e);
             }
+        } catch (e) {
+            console.error('Error loading tournament data:', e);
+            // Continue with empty tournament data
         }
     }
 
